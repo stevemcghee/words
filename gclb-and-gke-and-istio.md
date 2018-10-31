@@ -1,16 +1,16 @@
 `Hold onto your butts:`
 
 - Create pod + service + gateway + virtualservice deployment in GKE:
-  - `% kc apply -f helloworld.yaml`
-  - Gateway’s Port needs to use named port:
+  - `% kc apply -f helloworld.yaml` # [link](https://github.com/istio/istio/tree/master/samples/helloworld)
+  - Gateway’s Port needs to use *named-port*:
     - port:
       - number: 30004
-      - name: http-hello-world
+      - name: http-hello-world # <-- this is your *named-port*
       - protocol: HTTP
   - VirtualService route destination needs to use full FQDN due to cross-namespace naming:
     - destination:
       - host: helloworld.default.svc.cluster.local
-      - port: number: 5000   # 5000 is the pod’s port, not named-port
+      - port: number: 5000   # 5000 is the pod’s serving port, not the *named-port*
 - Create a loadbalancer:
   - Backend config
     - Backend service:  create new backend service.
@@ -21,7 +21,7 @@
         - HTTP
         - /hello  (or whatever path will work)
         - PORT!  Not 80.  Not the ingressgateway’s HTTP port.
-          - Create a *named port*
+          - Create a *named-port*
           - We used 30000 + N (where N is each VirtualService we expose)
           - In this case: 30004
       1 Add an appArmor Security Policy (separately?)
@@ -46,11 +46,11 @@
       - 35.191.0.0/16
     - tcp:30000+N  (30004 in our case)
 - Still won’t work, as Istio hasn’t opened up the 30000+N port yet:
-  - Add that named port to istio-ingressgateway via helm values.yaml in Istio.Chart:
+  - Add that *named-port* to istio-ingressgateway via helm values.yaml in Istio.Chart:
     - `    - port: 30004`
-    - `      name: http-hello-world`
+    - `      name: http-hello-world` # the same *named-port*
     - `      nodePort: 30004` 
   - `helm upgrade istio "istio-1.0.2/install/kubernetes/helm/istio" --namespace istio-system -f values.yaml -f env/prod.yaml`
 
 
-I think there were a couple other things, like needing to use the exact name of the named port (`http-hello-world`), but I forget where we did that now.
+I think there were a couple other things, like needing to use the exact name of the named-port (`http-hello-world`), but I forget where we did that now.
