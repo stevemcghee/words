@@ -54,3 +54,5 @@
 
 
 I think there were a couple other things, like needing to use the exact name of the named-port (`http-hello-world`), but I forget where we did that now.
+
+Not attempted yet:  HTTPS
